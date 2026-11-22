@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centro de Mando Operacional — Optimización Agropecuaria Quintero Da Silva</title>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX para Fórmulas Matemáticas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Chart.js v4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Estilos del Dashboard -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       ENCABEZADO INSTITUCIONAL UCAB
+       ======================================================================== -->
+  <header class="main-header">
+    <div class="header-container">
+      <div class="header-brand">
+        <img src="ucab_completo.png" alt="Logo UCAB" class="header-logo">
+        <div class="header-title-block">
+          <h1>Centro de Mando — Optimización Agropecuaria Quintero Da Silva</h1>
+          <p>Universidad Católica Andrés Bello • Facultad de Ingeniería • Escuela de Ingeniería Informática</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-live">Motor Simplex Activo</span>
+        <span class="badge badge-academic">Investigación de Operaciones</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       BARRA DE NAVEGACIÓN POR PESTAÑAS
+       ======================================================================== -->
+  <nav class="nav-tabs-wrapper">
+    <div class="nav-tabs-container">
+      <button class="nav-tab-btn active" data-tab="tab-dashboard">
+        <span>🏛️</span> Centro de Mando
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-simplex">
+        <span>⚡</span> Simulador Simplex en Vivo
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-whatif">
+        <span>🧪</span> Laboratorio What-If
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-decisions">
+        <span>⚖️</span> Matriz de Decisión & EVPI
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-charts">
+        <span>📊</span> Galería de Gráficas
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-docs">
+        <span>📄</span> Modelo & Fórmulas
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========================================================================
+       CONTENIDO PRINCIPAL
+       ======================================================================== -->
+  <main class="main-wrapper">
+
+    <!-- ======================================================================
+         PESTAÑA 1: CENTRO DE MANDO (RESUMEN EJECUTIVO & MODELOS)
+         ====================================================================== -->
+    <section id="tab-dashboard" class="tab-pane active">
+      
+      <!-- Fila de Indicadores Clave (KPIs) -->
+      <div class="kpi-grid">
+        <div class="kpi-card optimo-teorico">
+          <div class="kpi-header">
+            <span class="kpi-title">Óptimo Buen Clima (Mod. 1)</span>
+            <span class="kpi-badge kpi-badge-green">Techo Teórico</span>
+          </div>
+          <div class="kpi-value">99,367.00 <span style="font-size: 1.1rem;">u.m.</span></div>
+          <div class="kpi-desc">Especialización total en soya comercial (450 acres). Sin inversión en ganado.</div>
+        </div>
+
+        <div class="kpi-card optimo-bayes">
+          <div class="kpi-header">
+            <span class="kpi-title">Óptimo Esperado (Mod. 3)</span>
+            <span class="kpi-badge kpi-badge-blue">Plan B Recomendado</span>
+          </div>
+          <div class="kpi-value">80,537.00 <span style="font-size: 1.1rem;">u.m.</span></div>
+          <div class="kpi-desc">Diversificación racional esperada: 12 vacas + 414 acres de soya + jornales externos.</div>
+        </div>
+
+        <div class="kpi-card piso-seguro">
+          <div class="kpi-header">
+            <span class="kpi-title">Piso Mínimo Garantizado</span>
+            <span class="kpi-badge kpi-badge-amber">Plan C Defensivo</span>
+          </div>
+          <div class="kpi-value">66,648.80 <span style="font-size: 1.1rem;">u.m.</span></div>
+          <div class="kpi-desc">Blindaje ganadero ante sequía y helada extrema. 414 acres en reserva.</div>
+        </div>
+
+        <div class="kpi-card evpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Valor Info. Perfecta (EVPI)</span>
+            <span class="kpi-badge kpi-badge-purple">Límite Pronóstico</span>
+          </div>
+          <div class="kpi-value">3,659.83 <span style="font-size: 1.1rem;">u.m.</span></div>
+          <div class="kpi-desc">Monto máximo justificado para contratar pronósticos meteorológicos 100% certeros.</div>
+        </div>
+      </div>
+
+      <!-- Resumen de los 3 Modelos -->
+      <div class="content-card">
+        <div class="card-title-bar">
+          <h2><span>📋</span> Los Tres Modelos de Optimización del Proyecto</h2>
+          <span class="card-subtitle">Evolución metodológica de determinístico a estocástico</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+          <!-- Modelo 1 -->
+          <div style="border: 1px solid #E2E8F0; border-top: 3.5px solid #10B981; border-radius: 8px; padding: 18px; background: #FAFDFB;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h3 style="font-size: 1.05rem; color: #1E3E62;">Modelo 1: Buen Clima (Base)</h3>
+              <span class="badge kpi-badge-green">$Z^* = 99,367.00\text{ u.m.}$</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 12px;">
+              Modelo lineal determinista asumiendo condiciones meteorológicas óptimas. Al tener márgenes agrícolas altos (Soya 70 u.m./ac), el costo de oportunidad de la tierra expulsa al ganado vacuno nuevo ($x_v = 0$).
+            </p>
+            <ul style="font-size: 0.82rem; color: #334155; padding-left: 18px; line-height: 1.6;">
+              <li><strong>Soya:</strong> 450.0 acres (tope comercial).</li>
+              <li><strong>Maíz y Trigo:</strong> 30 y 100 acres (solo autoconsumo base).</li>
+              <li><strong>Ganado adicional:</strong> 0 vacas y 0 gallinas.</li>
+              <li><strong>Jornales externos:</strong> 1,063 h-p (Inv-Prim) y 1,364 h-p (Ver-Oto).</li>
+            </ul>
+          </div>
+
+          <!-- Modelo 2 -->
+          <div style="border: 1px solid #E2E8F0; border-top: 3.5px solid #EF4444; border-radius: 8px; padding: 18px; background: #FEF9F9;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h3 style="font-size: 1.05rem; color: #1E3E62;">Modelo 2: Escenarios Adversos</h3>
+              <span class="badge kpi-badge-amber">5 Climas Críticos</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 12px;">
+              Evalúa individualmente 5 condiciones climáticas desfavorables (Sequía, Inundación, Helada, Sequía+Helada, Inund.+Helada). Demuestra que la ganadería lechera ($x_v=12$) opera como amortiguador de choque financiero.
+            </p>
+            <ul style="font-size: 0.82rem; color: #334155; padding-left: 18px; line-height: 1.6;">
+              <li><strong>En Sequía Severa:</strong> $Z^* = 67,863.80\text{ u.m.}$ ($x_v=12$, soya=0).</li>
+              <li><strong>En Inundación Pluvial:</strong> $Z^* = 74,055.02\text{ u.m.}$ ($x_v=12$, maíz=422.7).</li>
+              <li><strong>En Sequía y Helada:</strong> $Z^* = 66,648.80\text{ u.m.}$ (414 ac sin sembrar).</li>
+              <li><strong>Conclusión:</strong> El monocultivo de soya colapsa en años secos.</li>
+            </ul>
+          </div>
+
+          <!-- Modelo 3 -->
+          <div style="border: 1px solid #E2E8F0; border-top: 3.5px solid #0070F3; border-radius: 8px; padding: 18px; background: #F8FAFC;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h3 style="font-size: 1.05rem; color: #1E3E62;">Modelo 3: Valor Esperado</h3>
+              <span class="badge kpi-badge-blue">$E[Z]^* = 80,537.00\text{ u.m.}$</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 12px;">
+              Modela la decisión racional en invierno usando las frecuencias históricas ($p_1=0.40$ a $p_6=0.05$). Maximiza el patrimonio esperado ponderado calculando $E[c_s]=34, E[c_m]=27.50, E[c_t]=20.75$.
+            </p>
+            <ul style="font-size: 0.82rem; color: #334155; padding-left: 18px; line-height: 1.6;">
+              <li><strong>Vacas lecheras:</strong> 12 vacas (llena el establo).</li>
+              <li><strong>Soya comercial:</strong> 414.0 acres (tierra arable restante).</li>
+              <li><strong>Maíz y Trigo:</strong> 42 y 100 acres (autoconsumo cubierto).</li>
+              <li><strong>Estrategia Ganadora:</strong> Plan B institucional (+270 u.m. vs Plan A).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Planes de Acción y Guía de Decisión -->
+      <div class="content-card">
+        <div class="card-title-bar">
+          <h2><span>🧭</span> Guía de Decisión Ejecutiva: ¿Cuándo escoger cada Plan?</h2>
+          <span class="card-subtitle">Criterios de gobernanza para la familia Quintero Da Silva</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+          <!-- Plan A Card -->
+          <div style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 18px; background: #FFFFFF; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <h4 style="font-size: 1.05rem; color: #1B4D3E; font-weight: 700;">Plan A: Optimista (MaxiMax)</h4>
+              <span class="badge kpi-badge-green">Techo: 99,367 u.m.</span>
+            </div>
+            <p style="font-size: 0.82rem; color: #64748B; margin-bottom: 10px;">
+              <strong>Configuración:</strong> 0 vacas nuevas, 450 ac soya, 30 ac maíz, 100 ac trigo.
+            </p>
+            <p style="font-size: 0.85rem; color: #334155; line-height: 1.5; margin-bottom: 12px;">
+              <strong>¿Cuándo escogerlo?</strong> Exclusivamente cuando la administración posea seguros agrícolas paramétricos contratados contra sequía, o cuando los pronósticos climáticos confirmen con alta certeza un año neutro o húmedo. Apto solo para perfiles de alto apetito por el riesgo.
+            </p>
+            <div style="font-size: 0.8rem; background: #F1F5F9; padding: 8px 10px; border-radius: 4px; color: #475569;">
+              ⚠️ <em>Riesgo:</em> Si ocurre sequía, el patrimonio cae a 57,117.00 u.m. (−42.5%).
+            </div>
+          </div>
+
+          <!-- Plan B Card -->
+          <div style="border: 2px solid #0070F3; border-radius: 8px; padding: 18px; background: #F0F7FF; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <h4 style="font-size: 1.05rem; color: #0070F3; font-weight: 800;">Plan B: Recomendado (Valor Esperado)</h4>
+              <span class="badge kpi-badge-blue">E[Z]: 80,537 u.m.</span>
+            </div>
+            <p style="font-size: 0.82rem; color: #1E40AF; margin-bottom: 10px;">
+              <strong>Configuración:</strong> 12 vacas nuevas, 414 ac soya, 42 ac maíz, 100 ac trigo.
+            </p>
+            <p style="font-size: 0.85rem; color: #1E293B; line-height: 1.5; margin-bottom: 12px;">
+              <strong>¿Cuándo escogerlo?</strong> Es la recomendación técnica por excelencia. Maximiza la riqueza promedio esperada a mediano y largo plazo. Ofrece el mejor balance entre alto potencial de captación agrícola y protección ganadera en años difíciles (+270 u.m. neto frente al Plan A).
+            </p>
+            <div style="font-size: 0.8rem; background: #DBEAFE; padding: 8px 10px; border-radius: 4px; color: #1E40AF; font-weight: 600;">
+              ✓ <em>Gobernanza:</em> Seleccionado como la mejor alternativa bajo el Criterio del Valor Esperado.
+            </div>
+          </div>
+
+          <!-- Plan C Card -->
+          <div style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 18px; background: #FFFFFF; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <h4 style="font-size: 1.05rem; color: #B7950B; font-weight: 700;">Plan C: Defensivo (MaxiMin)</h4>
+              <span class="badge kpi-badge-amber">Piso: 66,648 u.m.</span>
+            </div>
+            <p style="font-size: 0.82rem; color: #64748B; margin-bottom: 10px;">
+              <strong>Configuración:</strong> 12 vacas nuevas, 0 ac soya, 42 ac maíz, 100 ac trigo, 414 ac ociosos.
+            </p>
+            <p style="font-size: 0.85rem; color: #334155; line-height: 1.5; margin-bottom: 12px;">
+              <strong>¿Cuándo escogerlo?</strong> Si la familia presenta aversión severa al riesgo, compromisos financieros o deudas bancarias de vencimiento inmediato que no toleren flujos negativos, o ante alertas meteorológicas oficiales de sequía catastrófica inminente (Super El Niño).
+            </p>
+            <div style="font-size: 0.8rem; background: #FEF3C7; padding: 8px 10px; border-radius: 4px; color: #92400E;">
+              🛡️ <em>Blindaje:</em> Asegura el peor escenario más alto (66,648.80 u.m.), pero renuncia a 23,722 u.m. en buen clima.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PESTAÑA 2: SIMULADOR SIMPLEX EN VIVO
+         ====================================================================== -->
+    <section id="tab-simplex" class="tab-pane">
+      
+      <!-- Barra de Control del Simulador -->
+      <div class="simplex-toolbar">
+        <div class="toolbar-group">
+          <label for="simplex-model-select" style="font-size: 0.85rem; font-weight: 700; color: #1E3E62;">Modelo a Resolver:</label>
+          <select id="simplex-model-select" class="model-select">
+            <option value="model1" selected>Modelo 1: Buen Clima (Z* = 99,367.00 u.m.)</option>
+            <option value="model3">Modelo 3: Valor Esperado (Z* = 80,537.00 u.m.)</option>
+            <option value="sequia">Modelo 2.1: Sequía Severa (Z* = 67,863.80 u.m.)</option>
+          </select>
+        </div>
+
+        <div class="toolbar-group">
+          <button id="btn-simplex-prev" class="btn btn-secondary" title="Paso anterior">⏮️ Paso</button>
+          <button id="btn-simplex-play" class="btn btn-primary" title="Iniciar resolución animada">▶️ Resolver</button>
+          <button id="btn-simplex-pause" class="btn btn-warning" style="display: none;" title="Pausar animación">⏸️ Pausa</button>
+          <button id="btn-simplex-next" class="btn btn-secondary" title="Siguiente paso">Paso ⏭️</button>
+          
+          <!-- BOTÓN SOLICITADO: ACELERAR / RESOLVER INMEDIATO -->
+          <button id="btn-simplex-accelerate" class="btn btn-accelerate" title="Saltar directamente al resultado definitivo">
+            ⚡ Acelerar (Resultado Final)
+          </button>
+          
+          <button id="btn-simplex-reset" class="btn btn-secondary" title="Reiniciar al estado base">🔄 Reiniciar</button>
+        </div>
+
+        <div class="toolbar-group">
+          <label for="simplex-speed-select" style="font-size: 0.8rem; font-weight: 600; color: #475569;">Velocidad:</label>
+          <select id="simplex-speed-select" class="model-select" style="padding: 4px 8px;">
+            <option value="2000">0.5x (Lenta)</option>
+            <option value="1200" selected>1.0x (Normal)</option>
+            <option value="600">2.0x (Rápida)</option>
+            <option value="250">5.0x (Ultra)</option>
+          </select>
+          <span id="simplex-step-badge" class="step-indicator">Paso 0 de 3</span>
+          <span id="simplex-status-badge" class="badge kpi-badge-amber">Estado Base</span>
+        </div>
+      </div>
+
+      <!-- Nota de Convención Académica -->
+      <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 10px 16px; margin-bottom: 16px; font-size: 0.83rem; color: #1E40AF;">
+        📌 <strong>Convención Académica Estándar:</strong> Por directriz de cátedra, el problema se resuelve mediante la <strong>Minimización de $(-Z)$</strong>. La columna de valores se denota <strong>LD</strong> (Lado Derecho), la razón de prueba se denomina <strong>TMR</strong> (Test de la Razón Mínima), las holguras se identifican como $s_i$ y las artificiales como $t_i$. Al finalizar, el beneficio óptimo se recupera como $Z^* = -(-Z)^*$.
+      </div>
+
+      <!-- Diseño Dividido: Gráfica de Convergencia + Métricas en Vivo -->
+      <div class="simplex-layout">
+        
+        <!-- Panel Izquierdo: Gráfica de Convergencia Z vs Iteración -->
+        <div class="chart-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 1rem; color: #1E3E62; font-weight: 700;">Convergencia del Algoritmo Simplex ($Z$ vs Iteración)</h3>
+            <span style="font-size: 0.78rem; color: #64748B;">Trayectoria de Vértices Factibles</span>
+          </div>
+
+          <div class="chart-wrapper">
+            <canvas id="chart-convergence"></canvas>
+          </div>
+
+          <!-- Métricas de la Solución Básica Factible Actual -->
+          <div class="sol-metrics-grid">
+            <div class="sol-metric-pill" style="border-left: 3.5px solid #0070F3;">
+              <div class="sol-metric-name">Patrimonio Z</div>
+              <div id="m-val-z" class="sol-metric-val" style="color: #0070F3;">73,582.00</div>
+            </div>
+            <div class="sol-metric-pill">
+              <div class="sol-metric-name">Vacas (x_v)</div>
+              <div id="m-val-xv" class="sol-metric-val">0</div>
+            </div>
+            <div class="sol-metric-pill">
+              <div class="sol-metric-name">Gallinas (x_g)</div>
+              <div id="m-val-xg" class="sol-metric-val">0</div>
+            </div>
+            <div class="sol-metric-pill">
+              <div class="sol-metric-name">Soya (x_s)</div>
+              <div id="m-val-xs" class="sol-metric-val">0.0</div>
+            </div>
+            <div class="sol-metric-pill">
+              <div class="sol-metric-name">Maíz (x_m)</div>
+              <div id="m-val-xm" class="sol-metric-val">30.0</div>
+            </div>
+            <div class="sol-metric-pill">
+              <div class="sol-metric-name">Trigo (x_t)</div>
+              <div id="m-val-xt" class="sol-metric-val">100.0</div>
+            </div>
+            <div class="sol-metric-pill">
+              <div class="sol-metric-name">h-p Inv-Prim</div>
+              <div id="m-val-xip" class="sol-metric-val">1,513.0</div>
+            </div>
+            <div class="sol-metric-pill">
+              <div class="sol-metric-name">h-p Ver-Oto</div>
+              <div id="m-val-xvo" class="sol-metric-val">1,994.0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Tableau Simplex Interactivo -->
+        <div class="chart-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 1rem; color: #1E3E62; font-weight: 700;">Tabla Simplex Canónica (Tableau Dinámico)</h3>
+            <span style="font-size: 0.78rem; color: #64748B;">Operaciones de Fila de Gauss-Jordan</span>
+          </div>
+
+          <div id="simplex-tableau-container" class="table-responsive">
+            <!-- Se inyecta dinámicamente con app.js -->
+          </div>
+
+          <!-- Leyenda de colores del Tableau -->
+          <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.75rem; color: #475569; flex-wrap: wrap;">
+            <span style="display: flex; align-items: center; gap: 5px;">
+              <span style="display: inline-block; width: 14px; height: 14px; background: #E0F2FE; border: 1px solid #0284C7; border-radius: 2px;"></span>
+              Columna Pivote (Variable Entrante ↓)
+            </span>
+            <span style="display: flex; align-items: center; gap: 5px;">
+              <span style="display: inline-block; width: 14px; height: 14px; background: #FEF9C3; border: 1px solid #EAB308; border-radius: 2px;"></span>
+              Fila Pivote (Variable Saliente ← / TMR Mínimo)
+            </span>
+            <span style="display: flex; align-items: center; gap: 5px;">
+              <span style="display: inline-block; width: 14px; height: 14px; background: #FDE047; border: 2px solid #D97706; border-radius: 2px;"></span>
+              <strong>Elemento Pivote Seleccionado (Texto Negro de Alto Contraste)</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Caja de Registro Explicativo Narrativo -->
+      <div class="step-log-box">
+        <div id="simplex-log-title" class="step-log-title">
+          <span>ℹ️</span> Solución Básica Factible Inicial (Estado Base)
+        </div>
+        <div id="simplex-log-text" class="step-log-text">
+          Cargando parámetros iniciales del modelo...
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PESTAÑA 3: LABORATORIO WHAT-IF (SENSIBILIDAD DINÁMICA)
+         ====================================================================== -->
+    <section id="tab-whatif" class="tab-pane">
+      <div class="card-title-bar">
+        <h2><span>🧪</span> Laboratorio What-If de Sensibilidad Dinámica</h2>
+        <span class="card-subtitle">Experimentación en tiempo real: ajuste probabilidades climáticas, capital y establo</span>
+      </div>
+
+      <div class="whatif-grid">
+        <!-- Panel Izquierdo: Controles Deslizantes (Sliders) -->
+        <div class="chart-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-size: 0.95rem; color: #1E3E62; font-weight: 700;">Probabilidades Climáticas</h3>
+            <button id="btn-normalize-probs" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;">
+              Normalizar 100%
+            </button>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">1. Buen Clima (p₁)</span>
+              <span id="val-p1" class="slider-value">40%</span>
+            </div>
+            <input type="range" id="slider-p1" class="custom-range" min="0" max="100" value="40">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">2.1 Sequía Severa (p₂)</span>
+              <span id="val-p2" class="slider-value">20%</span>
+            </div>
+            <input type="range" id="slider-p2" class="custom-range" min="0" max="100" value="20">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">2.2 Inundación Pluvial (p₃)</span>
+              <span id="val-p3" class="slider-value">10%</span>
+            </div>
+            <input type="range" id="slider-p3" class="custom-range" min="0" max="100" value="10">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">2.3 Helada Temprana (p₄)</span>
+              <span id="val-p4" class="slider-value">15%</span>
+            </div>
+            <input type="range" id="slider-p4" class="custom-range" min="0" max="100" value="15">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">2.4 Sequía y Helada (p₅)</span>
+              <span id="val-p5" class="slider-value">10%</span>
+            </div>
+            <input type="range" id="slider-p5" class="custom-range" min="0" max="100" value="10">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">2.5 Inundación y Helada (p₆)</span>
+              <span id="val-p6" class="slider-value">5%</span>
+            </div>
+            <input type="range" id="slider-p6" class="custom-range" min="0" max="100" value="5">
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E2E8F0; font-size: 0.85rem; font-weight: 700;">
+            <span>Suma de Probabilidades:</span>
+            <span id="val-psum" style="color: #10B981;">100%</span>
+          </div>
+
+          <h3 style="font-size: 0.95rem; color: #1E3E62; font-weight: 700; margin: 20px 0 14px 0;">Recursos y Precios</h3>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">Fondo de Inversión</span>
+              <span id="val-fund" class="slider-value">20,000 u.m.</span>
+            </div>
+            <input type="range" id="slider-fund" class="custom-range" min="10000" max="35000" step="1000" value="20000">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">Capacidad de Establo (Vacas Nuevas)</span>
+              <span id="val-barn" class="slider-value">12 vacas</span>
+            </div>
+            <input type="range" id="slider-barn" class="custom-range" min="0" max="30" step="1" value="12">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">Precio Neto Soya (Buen Clima)</span>
+              <span id="val-soy-price" class="slider-value">70 u.m./ac</span>
+            </div>
+            <input type="range" id="slider-soy-price" class="custom-range" min="30" max="110" step="5" value="70">
+          </div>
+
+          <button id="btn-reset-whatif" class="btn btn-secondary" style="width: 100%; margin-top: 14px;">
+            🔄 Restablecer Valores Base
+          </button>
+        </div>
+
+        <!-- Panel Derecho: Resultados Dinámicos Instantáneos -->
+        <div>
+          <!-- Tarjeta de Resultado Principal -->
+          <div class="outcome-summary-card">
+            <div>
+              <div class="outcome-title">Patrimonio Neto Esperado Óptimo</div>
+              <div id="whatif-out-z" class="outcome-val">80,537.00 u.m.</div>
+              <div class="outcome-meta">
+                Plan Resultante: <strong id="whatif-out-plan" style="color: #38BDF8;">Plan B (Recomendado)</strong>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span id="whatif-out-delta" class="kpi-badge kpi-badge-green" style="font-size: 0.9rem; padding: 6px 12px;">
+                0.00 u.m. vs Histórico
+              </span>
+              <div style="font-size: 0.8rem; color: #94A3B8; margin-top: 6px;">
+                Ventaja Vaca vs Soya: <strong id="whatif-out-advantage" style="color: #34D399;">+22.50 u.m./vaca</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gráfica de Asignación de Tierra y Precios Esperados -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="chart-card">
+              <h4 style="font-size: 0.9rem; color: #1E3E62; margin-bottom: 10px; font-weight: 700;">
+                Distribución de las 640 Acres
+              </h4>
+              <div style="position: relative; height: 230px;">
+                <canvas id="chart-whatif-land"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <h4 style="font-size: 0.9rem; color: #1E3E62; margin-bottom: 10px; font-weight: 700;">
+                Valores Agrícolas Ponderados E[c]
+              </h4>
+              <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem; margin-top: 14px;">
+                <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #F8FAFC; border-radius: 4px;">
+                  <span>Soya Esperada ($E[c_s]$):</span>
+                  <strong id="whatif-out-ecs" style="color: #2E7D32;">34.00 u.m.</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #F8FAFC; border-radius: 4px;">
+                  <span>Maíz Esperado ($E[c_m]$):</span>
+                  <strong id="whatif-out-ecm" style="color: #F59E0B;">27.50 u.m.</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #F8FAFC; border-radius: 4px;">
+                  <span>Trigo Esperado ($E[c_t]$):</span>
+                  <strong id="whatif-out-ect" style="color: #F9A825;">20.75 u.m.</strong>
+                </div>
+              </div>
+
+              <h4 style="font-size: 0.9rem; color: #1E3E62; margin: 18px 0 8px 0; font-weight: 700;">
+                Asignación Óptima de Actividades
+              </h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.82rem;">
+                <div style="background: #F1F5F9; padding: 6px 10px; border-radius: 4px;">Vacas ($x_v$): <strong id="whatif-out-xv">12</strong></div>
+                <div style="background: #F1F5F9; padding: 6px 10px; border-radius: 4px;">Soya ($x_s$): <strong id="whatif-out-xs">414.0</strong> ac</div>
+                <div style="background: #F1F5F9; padding: 6px 10px; border-radius: 4px;">Maíz ($x_m$): <strong id="whatif-out-xm">42.0</strong> ac</div>
+                <div style="background: #F1F5F9; padding: 6px 10px; border-radius: 4px;">Trigo ($x_t$): <strong id="whatif-out-xt">100.0</strong> ac</div>
+                <div style="background: #F1F5F9; padding: 6px 10px; border-radius: 4px;">Inv-Prim ($x_{ip}$): <strong id="whatif-out-xip">368.2</strong> h</div>
+                <div style="background: #F1F5F9; padding: 6px 10px; border-radius: 4px;">Ver-Oto ($x_{vo}$): <strong id="whatif-out-xvo">680.0</strong> h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PESTAÑA 4: MATRIZ DE DECISIÓN & EVPI
+         ====================================================================== -->
+    <section id="tab-decisions" class="tab-pane">
+      <div class="content-card">
+        <div class="card-title-bar">
+          <h2><span>⚖️</span> Matriz de Pagos de los Planes Estratégicos (Tabla 4.2)</h2>
+          <span class="card-subtitle">Desempeño patrimonial de cada estrategia bajo los seis estados de la naturaleza</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Escenario Climático</th>
+                <th class="text-center">Prob.</th>
+                <th class="text-right">Plan A (Optimista)</th>
+                <th class="text-right">Plan B (Recomendado)</th>
+                <th class="text-right">Plan C (Defensivo)</th>
+                <th class="text-right">Diferencia B vs A</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-bold">1. Buen Clima</td>
+                <td class="text-center">40%</td>
+                <td class="text-right font-bold text-green">99,367.00 u.m. ★</td>
+                <td class="text-right">98,731.00 u.m.</td>
+                <td class="text-right">75,008.80 u.m.</td>
+                <td class="text-right text-red">−636.00 u.m.</td>
+              </tr>
+              <tr>
+                <td class="font-bold">2.1 Sequía Severa</td>
+                <td class="text-center">20%</td>
+                <td class="text-right">57,117.00 u.m.</td>
+                <td class="text-right">58,461.00 u.m.</td>
+                <td class="text-right font-bold text-green">67,858.80 u.m. ★</td>
+                <td class="text-right font-bold text-green">+1,344.00 u.m.</td>
+              </tr>
+              <tr>
+                <td class="font-bold">2.2 Inundación Pluvial</td>
+                <td class="text-center">10%</td>
+                <td class="text-right">70,417.00 u.m.</td>
+                <td class="text-right font-bold text-green">71,281.00 u.m. ★</td>
+                <td class="text-right">70,328.80 u.m.</td>
+                <td class="text-right font-bold text-green">+864.00 u.m.</td>
+              </tr>
+              <tr>
+                <td class="font-bold">2.3 Helada Temprana</td>
+                <td class="text-center">15%</td>
+                <td class="text-right font-bold text-green">88,767.00 u.m. ★</td>
+                <td class="text-right">88,611.00 u.m.</td>
+                <td class="text-right">73,168.80 u.m.</td>
+                <td class="text-right text-red">−156.00 u.m.</td>
+              </tr>
+              <tr>
+                <td class="font-bold">2.4 Sequía y Helada</td>
+                <td class="text-center">10%</td>
+                <td class="text-right">53,717.00 u.m.</td>
+                <td class="text-right">55,181.00 u.m.</td>
+                <td class="text-right font-bold text-green">66,648.80 u.m. ★</td>
+                <td class="text-right font-bold text-green">+1,464.00 u.m.</td>
+              </tr>
+              <tr>
+                <td class="font-bold">2.5 Inundación y Helada</td>
+                <td class="text-center">5%</td>
+                <td class="text-right">67,367.00 u.m.</td>
+                <td class="text-right">68,291.00 u.m.</td>
+                <td class="text-right font-bold text-green">69,408.80 u.m. ★</td>
+                <td class="text-right font-bold text-green">+924.00 u.m.</td>
+              </tr>
+              <tr style="background: #EFF6FF; font-weight: 800; border-top: 2.5px solid #0070F3;">
+                <td style="color: #1E3E62;">Ganancia Promedio Esperada E[Z]</td>
+                <td class="text-center">100%</td>
+                <td class="text-right">80,267.00 u.m.</td>
+                <td class="text-right text-blue" style="font-size: 1.05rem;">80,537.00 u.m. ★</td>
+                <td class="text-right">71,718.80 u.m.</td>
+                <td class="text-right text-blue" style="font-size: 1.05rem;">+270.00 u.m.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Consolidación de los Tres Planes Estratégicos -->
+      <div class="content-card">
+        <div class="card-title-bar">
+          <h2><span>🎯</span> Evaluación Comparativa de los Tres Planes de Decisión</h2>
+          <span class="card-subtitle">Síntesis ejecutiva de las alternativas fundamentales bajo incertidumbre</span>
+        </div>
+
+        <div class="criteria-grid">
+          <!-- Plan A -->
+          <div class="criteria-card">
+            <div class="criteria-header">
+              <span class="criteria-title">Plan A: Especialización Agrícola</span>
+              <span class="badge kpi-badge-green">Criterio MaxiMax</span>
+            </div>
+            <div class="criteria-plan" style="color: #1B4D3E;">99,367.00 u.m. (Máximo)</div>
+            <div class="criteria-desc">
+              <strong>Perfil de Riesgo:</strong> Optimista puro. Apuesta 100% de la tierra arable a soya comercial. Ofrece el mayor beneficio ante buen clima, pero cae a $53,717.00\text{ u.m.}$ en sequía extrema. Promedio ponderado: $80,267.00\text{ u.m.}$
+            </div>
+          </div>
+
+          <!-- Plan B (UN SOLO PLAN B INTEGRADO) -->
+          <div class="criteria-card winner-card">
+            <div class="criteria-header">
+              <span class="criteria-title">Plan B: Diversificación Equilibrada</span>
+              <span class="badge kpi-badge-blue">★ RECOMENDADO</span>
+            </div>
+            <div class="criteria-plan" style="color: #059669;">80,537.00 u.m. (Esperado)</div>
+            <div class="criteria-desc">
+              <strong>Decisión Racional Óptima:</strong> Maximiza el valor esperado global con $+270.00\text{ u.m.}$ de ventaja neta sobre el Plan A. Llena el establo con 12 vacas lecheras y siembra 414 acres de soya. Minimiza además la pesadumbre máxima ante lo que pudo ganarse (menor arrepentimiento relativo: $11,467.80\text{ u.m.}$).
+            </div>
+          </div>
+
+          <!-- Plan C -->
+          <div class="criteria-card">
+            <div class="criteria-header">
+              <span class="criteria-title">Plan C: Cobertura Defensiva</span>
+              <span class="badge kpi-badge-amber">Criterio MaxiMin</span>
+            </div>
+            <div class="criteria-plan" style="color: #B7950B;">66,648.80 u.m. (Piso Seguro)</div>
+            <div class="criteria-desc">
+              <strong>Perfil de Riesgo:</strong> Conservador / Aversión al riesgo. No arriesga capital en soya comercial; destina la tierra únicamente al autoconsumo de 12 vacas y 2,000 gallinas, dejando 414 acres en barbecho. Garantiza el peor escenario más alto. Promedio: $71,718.80\text{ u.m.}$
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de Análisis del EVPI -->
+      <div class="content-card">
+        <div class="card-title-bar">
+          <h2><span>💡</span> Valor Esperado de la Información Perfecta (EVPI)</h2>
+          <span class="card-subtitle">Cálculo analítico del límite económico de contratación meteorológica</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <p style="font-size: 0.88rem; color: #334155; line-height: 1.6; margin-bottom: 12px;">
+              Si la familia pudiera adquirir un servicio satelital o meteorológico 100% infalible antes de la siembra de invierno, podría adoptar la estrategia óptima a posteriori en cada estado climático real:
+            </p>
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 14px; font-size: 0.85rem; font-family: monospace;">
+              Ganancia con pronóstico = 0.40(99,367) + 0.20(67,863.80) + 0.10(74,055.02) + 0.15(88,767) + 0.10(66,648.80) + 0.05(69,836.80) = <strong>84,196.83 u.m.</strong>
+            </div>
+            <div style="margin-top: 10px; font-size: 0.9rem; font-weight: 700; color: #1E3E62;">
+              $$\text{EVPI} = 84,196.83 - 80,537.00 = \mathbf{3,659.83\text{ u.m.}}$$
+            </div>
+          </div>
+
+          <div style="background: #F5F3FF; border: 1px solid #DDD6FE; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; justify-content: center;">
+            <div style="font-size: 0.8rem; text-transform: uppercase; color: #6D28D9; font-weight: 700; margin-bottom: 4px;">
+              Dictamen Financiero para la Gerencia
+            </div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #5B21B6; margin-bottom: 6px;">
+              ≤ 3,659.83 u.m.
+            </div>
+            <p style="font-size: 0.85rem; color: #4C1D95; line-height: 1.5;">
+              Cualquier tarifa o suscripción meteorológica que cueste más de <strong>3,659.83 u.m.</strong> destruirá valor financiero para la finca. Si un servicio predictivo cobra menos de dicho monto (por ejemplo, 1,500 u.m.), la contratación resulta económicamente atractiva con un beneficio neto esperado de +2,159.83 u.m.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PESTAÑA 5: GALERÍA DE GRÁFICAS ANALÍTICAS
+         ====================================================================== -->
+    <section id="tab-charts" class="tab-pane">
+      <div class="card-title-bar">
+        <h2><span>📊</span> Galería de Visualizaciones Analíticas Avanzadas</h2>
+        <span class="card-subtitle">Gráficos interactivos de alta resolución construidos con Chart.js</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Gráfica 1 -->
+        <div class="chart-card">
+          <h3 style="font-size: 0.95rem; color: #1E3E62; font-weight: 700; margin-bottom: 12px;">
+            1. Patrimonio Neto Óptimo $Z^*$ en cada Escenario Climático
+          </h3>
+          <div class="chart-wrapper">
+            <canvas id="gallery-chart-scenarios"></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfica 2 -->
+        <div class="chart-card">
+          <h3 style="font-size: 0.95rem; color: #1E3E62; font-weight: 700; margin-bottom: 12px;">
+            2. Distribución de las 640 Acres (Uso del Suelo)
+          </h3>
+          <div class="chart-wrapper">
+            <canvas id="gallery-chart-land"></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfica 3 -->
+        <div class="chart-card">
+          <h3 style="font-size: 0.95rem; color: #1E3E62; font-weight: 700; margin-bottom: 12px;">
+            3. Comparativa de la Matriz de Pagos: Planes A, B y C
+          </h3>
+          <div class="chart-wrapper">
+            <canvas id="gallery-chart-payoffs"></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfica 4 -->
+        <div class="chart-card">
+          <h3 style="font-size: 0.95rem; color: #1E3E62; font-weight: 700; margin-bottom: 12px;">
+            4. Descomposición del Patrimonio Óptimo en el Modelo 3
+          </h3>
+          <div class="chart-wrapper">
+            <canvas id="gallery-chart-donut"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PESTAÑA 6: DOCUMENTACIÓN & MODELO MATEMÁTICO
+         ====================================================================== -->
+    <section id="tab-docs" class="tab-pane">
+      <div class="content-card">
+        <div class="card-title-bar">
+          <h2><span>📄</span> Formulación Matemática Estándar del Problema</h2>
+          <span class="card-subtitle">Especificación rigurosa de variables, función objetivo y restricciones</span>
+        </div>
+
+        <div style="font-size: 0.9rem; color: #1E293B; line-height: 1.7;">
+          <h3 style="font-size: 1.05rem; color: #1E3E62; margin-bottom: 8px;">Variables de Decisión</h3>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>$x_v \in \mathbb{Z}_{\ge 0}$: Número de vacas lecheras adicionales adquiridas.</li>
+            <li>$x_g \in \mathbb{Z}_{\ge 0}$: Número de gallinas ponedoras adicionales adquiridas.</li>
+            <li>$x_s \ge 0$: Acres de tierra sembrados con soya.</li>
+            <li>$x_m \ge 0$: Acres de tierra sembrados con maíz.</li>
+            <li>$x_t \ge 0$: Acres de tierra sembrados con trigo.</li>
+            <li>$x_{ip} \ge 0$: Horas-persona de mano de obra familiar dedicadas al trabajo externo en invierno y primavera.</li>
+            <li>$x_{vo} \ge 0$: Horas-persona de mano de obra familiar dedicadas al trabajo externo en verano y otoño.</li>
+          </ul>
+
+          <h3 style="font-size: 1.05rem; color: #1E3E62; margin-bottom: 8px;">Función Objetivo General (Convención de Minimización)</h3>
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 14px; border-radius: 6px; margin-bottom: 16px; text-align: center;">
+            $$\text{Minimizar } (-Z) = -(700x_v + 3.50x_g + c_s x_s + c_m x_m + c_t x_t + 5.00 x_{ip} + 5.50 x_{vo} + 49,250)$$
+            <p style="font-size: 0.82rem; color: #64748B; margin-top: 6px;">Equivale estrictamente a $\text{Maximizar } Z$. El valor en la columna <strong>LD</strong> del tableau arroja $(-Z)^*$, obteniendo $Z^* = -(-Z)^*$.</p>
+          </div>
+
+          <h3 style="font-size: 1.05rem; color: #1E3E62; margin-bottom: 8px;">Restricciones del Sistema</h3>
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 14px; border-radius: 6px;">
+            $$\begin{aligned}
+              2x_v + x_s + x_m + x_t &\le 580 && \text{(Disponibilidad de tierra arable/pastoreo, holgura } s_1\text{)} \\
+              1,500x_v + 3x_g &\le 20,000 && \text{(Fondo de capital de inversión disponible, holgura } s_2\text{)} \\
+              60x_v + 0.30x_g + 1.0x_s + 0.9x_m + 0.6x_t + x_{ip} &= 1,600 && \text{(Balance mano de obra Invierno-Primavera)} \\
+              60x_v + 0.30x_g + 1.4x_s + 1.2x_m + 0.7x_t + x_{vo} &= 2,100 && \text{(Balance mano de obra Verano-Otoño)} \\
+              x_v &\le 12 && \text{(Capacidad física máxima del establo, holgura } s_3\text{)} \\
+              x_g &\le 3,000 && \text{(Capacidad física máxima del gallinero, holgura } s_4\text{)} \\
+              x_s &\le 450 && \text{(Límite agronómico de siembra de soya, holgura } s_5\text{)} \\
+              -x_v + x_m &\ge 30 && \text{(Alimento mínimo de maíz para vacas)} \\
+              -0.05x_g + x_t &\ge 100 && \text{(Alimento mínimo de trigo para gallinas)}
+            \end{aligned}$$
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       PIE DE PÁGINA
+       ======================================================================== -->
+  <footer class="main-footer">
+    <div style="max-width: 1440px; margin: 0 auto; text-align: center;">
+      <div>
+        <strong>Universidad Católica Andrés Bello</strong> • Facultad de Ingeniería • Escuela de Ingeniería Informática<br>
+        Investigación de Operaciones • Jesús Mora (Autor) • Prof. José Luis Quintero (Tutor)
+      </div>
+    </div>
+  </footer>
+
+  <!-- Carga de Módulos JavaScript -->
+  <script src="data.js"></script>
+  <script src="solver.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
