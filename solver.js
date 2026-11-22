@@ -8,154 +8,154 @@ const SOLVER = (function() {
   
   /**
    * Generador de pasos Simplex para visualización pedagógica en tiempo real
+   * Método de Dos Fases / Gran M con las 7 variables originales del problema:
+   * x_v, x_g, x_s, x_m, x_t, x_ip, x_vo
    * Convención académica: Se transforma el problema a MINIMIZACIÓN de (-Z)
-   * Forma canónica: (-Z) + sum(c_j * x_j) = -baseZ
+   * Forma canónica: (-Z) + sum(c_j * x_j) = -baseConst
    * Columna del Lado Derecho: LD
    * Columna de Test de la Razón Mínima: TMR
-   * Variables de holgura: s, variables artificiales: t
+   * Variables de holgura: s_1 .. s_7, variables artificiales: t_1, t_2
    */
   function generateSimplexSteps(modelType = 'model1') {
-    let config;
+    const varNames = ['x_v', 'x_g', 'x_s', 'x_m', 'x_t', 'x_{ip}', 'x_{vo}'];
+    const slackNames = ['s_1', 's_2', 's_3', 's_4', 's_5', 's_6', 's_7'];
+    const artNames = ['t_1', 't_2'];
+    const colNames = ['(-Z)', ...varNames, ...slackNames, ...artNames, 'LD'];
+    const totalCols = colNames.length;
+
+    // 9 Restricciones del Modelo Canónico Completo:
+    const rows = [
+      // 1: s1: 2*xv + xs + xm + xt + s1 = 580 (Tierra disponible: 640 - 60 pasto base)
+      { basic: 's_1', coeffs: { 'x_v': 2, 'x_s': 1, 'x_m': 1, 'x_t': 1, 's_1': 1 }, rhs: 580 },
+      // 2: s2: 1500*xv + 3*xg + s2 = 20000 (Fondo disponible de inversión)
+      { basic: 's_2', coeffs: { 'x_v': 1500, 'x_g': 3, 's_2': 1 }, rhs: 20000 },
+      // 3: xip: 60*xv + 0.30*xg + 1.0*xs + 0.9*xm + 0.6*xt + xip = 1600 (MO Invierno-Primavera)
+      { basic: 'x_{ip}', coeffs: { 'x_v': 60, 'x_g': 0.30, 'x_s': 1.0, 'x_m': 0.9, 'x_t': 0.6, 'x_{ip}': 1 }, rhs: 1600 },
+      // 4: xvo: 60*xv + 0.30*xg + 1.4*xs + 1.2*xm + 0.7*xt + xvo = 2100 (MO Verano-Otoño)
+      { basic: 'x_{vo}', coeffs: { 'x_v': 60, 'x_g': 0.30, 'x_s': 1.4, 'x_m': 1.2, 'x_t': 0.7, 'x_{vo}': 1 }, rhs: 2100 },
+      // 5: s3: xv + s3 = 12 (Capacidad del granero lechero)
+      { basic: 's_3', coeffs: { 'x_v': 1, 's_3': 1 }, rhs: 12 },
+      // 6: s4: xg + s4 = 3000 (Capacidad del gallinero)
+      { basic: 's_4', coeffs: { 'x_g': 1, 's_4': 1 }, rhs: 3000 },
+      // 7: s5: xs + s5 = 450 (Cota agronómica máxima para soya)
+      { basic: 's_5', coeffs: { 'x_s': 1, 's_5': 1 }, rhs: 450 },
+      // 8: t1: -xv + xm - s6 + t1 = 30 (Alimento maíz mínimo: xm >= 30 + xv)
+      { basic: 't_1', coeffs: { 'x_v': -1, 'x_m': 1, 's_6': -1, 't_1': 1 }, rhs: 30 },
+      // 9: t2: -0.05*xg + xt - s7 + t2 = 100 (Alimento trigo mínimo: xt >= 100 + 0.05*xg)
+      { basic: 't_2', coeffs: { 'x_g': -0.05, 'x_t': 1, 's_7': -1, 't_2': 1 }, rhs: 100 }
+    ];
+
+    const m = rows.length;
+    const basicVars = rows.map(r => r.basic);
+    const matrix = [];
+
+    for (let i = 0; i < m; i++) {
+      const row = new Array(totalCols).fill(0);
+      const r = rows[i];
+      for (const [v, val] of Object.entries(r.coeffs)) {
+        row[colNames.indexOf(v)] = val;
+      }
+      row[totalCols - 1] = r.rhs;
+      matrix.push(row);
+    }
+
+    // Coeficientes de la función objetivo según el modelo seleccionado:
+    let c_s, c_m, c_t, c_v = 700.0, c_g = 3.50, c_ip = 5.0, c_vo = 5.50, baseConst = 49250.0;
+    let title = "";
 
     if (modelType === 'model1') {
-      // Modelo 1: Buen Clima
-      config = {
-        title: "Modelo 1: Buen Clima (Escenario Ideal)",
-        varNames: ['x_s', 'y_m', 'y_t', 'x_v', 'x_g'],
-        colLabels: ['Soya (x_s)', 'Maíz Exc. (y_m)', 'Trigo Exc. (y_t)', 'Vacas (x_v)', 'Gallinas (x_g)'],
-        c: [57.30, 48.90, 33.15, 118.90, 2.0075],
-        A: [
-          [1.0, 1.0, 1.0, 3.0, 0.05],   // s_1: Tierra arable libre <= 450
-          [0.0, 0.0, 0.0, 1500.0, 3.0], // s_2: Fondo capital <= 20000
-          [0.0, 0.0, 0.0, 1.0, 0.0],    // s_3: Establo vacas <= 12
-          [0.0, 0.0, 0.0, 0.0, 1.0],    // s_4: Gallinero <= 3000
-          [1.0, 0.0, 0.0, 0.0, 0.0]     // s_5: Cota agronómica soya <= 450
-        ],
-        b: [450.0, 20000.0, 12.0, 3000.0, 450.0],
-        baseZ: 73582.0,
-        fixedCorn: 30.0,
-        fixedWheat: 100.0,
-        optimalZ: 99367.0
-      };
+      title = "Modelo 1: Buen Clima (Escenario Ideal)";
+      c_s = 70.0; c_m = 60.0; c_t = 40.0;
     } else if (modelType === 'model3') {
-      // Modelo 3: Valor Esperado
-      config = {
-        title: "Modelo 3: Valor Esperado",
-        varNames: ['x_v', 'x_s', 'y_m', 'y_t', 'x_g'],
-        colLabels: ['Vacas (x_v)', 'Soya (x_s)', 'Maíz Exc. (y_m)', 'Trigo Exc. (y_t)', 'Gallinas (x_g)'],
-        c: [86.40, 21.30, 16.40, 13.90, 1.045],
-        A: [
-          [3.0, 1.0, 1.0, 1.0, 0.05],   // s_1: Tierra libre <= 450
-          [1500.0, 0.0, 0.0, 0.0, 3.0], // s_2: Fondo capital <= 20000
-          [1.0, 0.0, 0.0, 0.0, 0.0],    // s_3: Establo vacas <= 12
-          [0.0, 0.0, 0.0, 0.0, 1.0],    // s_4: Gallinero <= 3000
-          [0.0, 1.0, 0.0, 0.0, 0.0]     // s_5: Cota soya <= 450
-        ],
-        b: [450.0, 20000.0, 12.0, 3000.0, 450.0],
-        baseZ: 70682.0,
-        fixedCorn: 30.0,
-        fixedWheat: 100.0,
-        optimalZ: 80537.0
-      };
+      title = "Modelo 3: Valor Esperado";
+      c_s = 34.0; c_m = 27.50; c_t = 20.75;
     } else if (modelType === 'sequia') {
-      // Modelo 2.1: Sequía Severa
-      config = {
-        title: "Modelo 2.1: Sequía Severa (Resiliencia)",
-        varNames: ['x_v', 'x_g', 'y_m', 'x_s', 'y_t'],
-        colLabels: ['Vacas (x_v)', 'Gallinas (x_g)', 'Maíz Exc. (y_m)', 'Soya (x_s)', 'Trigo Exc. (y_t)'],
-        c: [43.90, 0.0075, -26.10, -22.70, -6.85],
-        A: [
-          [3.0, 0.05, 1.0, 1.0, 1.0],
-          [1500.0, 3.0, 0.0, 0.0, 0.0],
-          [1.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 1.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 1.0, 0.0]
-        ],
-        b: [450.0, 20000.0, 12.0, 3000.0, 450.0],
-        baseZ: 67337.0,
-        fixedCorn: 30.0,
-        fixedWheat: 100.0,
-        optimalZ: 67863.80
-      };
+      title = "Modelo 2.1: Sequía Severa (Resiliencia)";
+      c_s = -10.0; c_m = -15.0; c_t = 0.0;
     } else {
       return generateSimplexSteps('model1');
     }
 
-    const { varNames, colLabels, c, A, b, baseZ, fixedCorn, fixedWheat } = config;
-    const m = A.length;
-    const n = c.length;
-
-    // Nomenclatura del Tableau:
-    // Columna 0: (-Z) (Función objetivo en convención de MINIMIZACIÓN)
-    // Columnas de variables de decisión: x_s, etc.
-    // Columnas de holgura: s_1 .. s_m (variables artificiales t si aplicaran)
-    // Columna de Lado Derecho: LD
-    const colNames = ['(-Z)', ...varNames];
-    for (let i = 0; i < m; i++) colNames.push(`s_${i + 1}`);
-    colNames.push('LD');
-
-    const totalCols = colNames.length;
-    const tableau = [];
-
-    // Fila 0: Forma canónica de minimización:
-    // Maximizar Z = baseZ + sum(c_j * x_j) <=> Minimizar (-Z) = -baseZ - sum(c_j * x_j)
-    // Ecuación canónica: (-Z) + sum(c_j * x_j) = -baseZ
-    // En la fila 0, los coeficientes de las variables son +c[j] y en LD es -baseZ
+    // Fila 0 de la función objetivo: Minimizar (-Z) = -baseConst - sum(c_j * x_j)
+    // Forma canónica: (-Z) + sum(c_j * x_j) = -baseConst
     const zRow = new Array(totalCols).fill(0);
     zRow[0] = 1;
-    for (let j = 0; j < n; j++) {
-      zRow[1 + j] = c[j]; // POSITIVO para la ecuación canónica de minimización
-    }
-    zRow[totalCols - 1] = -baseZ; // Valor inicial de (-Z) en LD
-    tableau.push(zRow);
+    zRow[colNames.indexOf('x_v')] = c_v;
+    zRow[colNames.indexOf('x_g')] = c_g;
+    zRow[colNames.indexOf('x_s')] = c_s;
+    zRow[colNames.indexOf('x_m')] = c_m;
+    zRow[colNames.indexOf('x_t')] = c_t;
+    zRow[colNames.indexOf('x_{ip}')] = c_ip;
+    zRow[colNames.indexOf('x_{vo}')] = c_vo;
+    zRow[totalCols - 1] = -baseConst;
 
-    // Filas de restricciones (1..m)
-    const basicVars = [];
-    for (let i = 0; i < m; i++) {
-      const row = new Array(totalCols).fill(0);
-      row[0] = 0;
-      for (let j = 0; j < n; j++) row[1 + j] = A[i][j];
-      row[1 + n + i] = 1.0; // variable de holgura s_i
-      row[totalCols - 1] = b[i]; // Lado Derecho LD
-      tableau.push(row);
-      basicVars.push(`s_${i + 1}`);
+    // Snapshot del tableau numérico
+    function getTableauSnapshot() {
+      return [
+        zRow.map(x => Number(x.toFixed(4))),
+        ...matrix.map(r => r.map(x => Number(x.toFixed(4))))
+      ];
+    }
+
+    // Valores físicos de las 7 variables de decisión
+    function getSolution() {
+      const sol = { xv: 0, xg: 0, xs: 0, xm: 0, xt: 0, xip: 0, xvo: 0 };
+      for (let i = 0; i < m; i++) {
+        const bVar = basicVars[i];
+        const val = matrix[i][totalCols - 1];
+        if (bVar === 'x_v') sol.xv = val;
+        else if (bVar === 'x_g') sol.xg = val;
+        else if (bVar === 'x_s') sol.xs = val;
+        else if (bVar === 'x_m') sol.xm = val;
+        else if (bVar === 'x_t') sol.xt = val;
+        else if (bVar === 'x_{ip}') sol.xip = val;
+        else if (bVar === 'x_{vo}') sol.xvo = val;
+      }
+      return sol;
+    }
+
+    // Pivote Gauss-Jordan completo
+    function fullPivot(pRow, pCol) {
+      const pVal = matrix[pRow][pCol];
+      for (let j = 0; j < totalCols; j++) matrix[pRow][j] /= pVal;
+      matrix[pRow][pCol] = 1.0;
+
+      for (let i = 0; i < m; i++) {
+        if (i !== pRow) {
+          const factor = matrix[i][pCol];
+          if (Math.abs(factor) > 1e-9) {
+            for (let j = 0; j < totalCols; j++) {
+              matrix[i][j] -= factor * matrix[pRow][j];
+            }
+            matrix[i][pCol] = 0.0;
+          }
+        }
+      }
+
+      const zFactor = zRow[pCol];
+      if (Math.abs(zFactor) > 1e-9) {
+        for (let j = 0; j < totalCols; j++) {
+          zRow[j] -= zFactor * matrix[pRow][j];
+        }
+        zRow[pCol] = 0.0;
+      }
+
+      basicVars[pRow] = colNames[pCol];
     }
 
     const steps = [];
 
-    // Función auxiliar para registrar cada iteración
-    function recordStep(iterNum, enteringCol, leavingRow, pivotVal, minRatio, msg, status, detailMsg) {
-      const tabCopy = tableau.map(r => [...r]);
-      const basicCopy = [...basicVars];
-      const negZ = tableau[0][totalCols - 1]; // valor de (-Z) en la columna LD
-      const currentZ = -negZ; // Riqueza maximizada Z = -(-Z)
-
-      // Variables físicas del problema
-      const sol = {};
-      varNames.forEach(v => sol[v] = 0);
-      for (let i = 0; i < m; i++) {
-        const bVar = basicVars[i];
-        if (varNames.includes(bVar)) {
-          sol[bVar] = tableau[i + 1][totalCols - 1];
-        }
-      }
-
-      const xv = sol['x_v'] || 0;
-      const xg = sol['x_g'] || 0;
-      const xs = sol['x_s'] || 0;
-      const ym = sol['y_m'] || 0;
-      const yt = sol['y_t'] || 0;
-      const xm = fixedCorn + xv + ym;
-      const xt = fixedWheat + 0.05 * xg + yt;
-
-      const xip = Math.max(0, 1600.0 - (60.0 * xv + 0.30 * xg + 1.0 * xs + 0.9 * xm + 0.6 * xt));
-      const xvo = Math.max(0, 2100.0 - (60.0 * xv + 0.30 * xg + 1.4 * xs + 1.2 * xm + 0.7 * xt));
+    function recordStep(iterNum, enteringCol, leavingRow, pivotVal, minRatio, msg, status, detailMsg, phaseName) {
+      const sol = getSolution();
+      const negZ = zRow[totalCols - 1];
+      const currentZ = -negZ;
 
       steps.push({
         iteration: iterNum,
-        tableau: tabCopy,
+        phase: phaseName,
+        tableau: getTableauSnapshot(),
         colNames: [...colNames],
-        basicVars: basicCopy,
+        basicVars: [...basicVars],
         enteringCol,
         enteringVar: enteringCol !== null ? colNames[enteringCol] : null,
         leavingRow,
@@ -163,57 +163,90 @@ const SOLVER = (function() {
         pivotVal,
         minRatio,
         currentNegZ: negZ,
-        currentZ: currentZ,
-        sol: { xv, xg, xs, xm, xt, xip, xvo, ym, yt },
+        currentZ: Math.max(0, currentZ),
+        sol,
         message: msg,
         detailMessage: detailMsg,
-        status // 'initial', 'iterating', 'optimal'
+        status
       });
     }
 
-    // Paso 0: Estado Base Inicial
+    // Canonicalización inicial de fila (-Z) respecto a las variables básicas iniciales (x_ip, x_vo)
+    for (let i = 0; i < m; i++) {
+      const bVar = basicVars[i];
+      const bCol = colNames.indexOf(bVar);
+      const factor = zRow[bCol];
+      if (Math.abs(factor) > 1e-9) {
+        for (let j = 0; j < totalCols; j++) {
+          zRow[j] -= factor * matrix[i][j];
+        }
+        zRow[bCol] = 0;
+      }
+    }
+
+    // PASO 0: Inicio de Fase 1
     recordStep(
-      0, null, null, null, null,
-      "Solución Básica Factible Inicial (Estado Base)",
+      0, colNames.indexOf('x_m'), 7, 1.0, 30.0,
+      "Fase 1 (Inicio): Planteamiento Canónico con Variables Artificiales",
       "initial",
-      `Por convención académica, el modelo se formula como <strong>Minimizar $(-Z)$</strong>: $(-Z) + \\sum c_j x_j = -${baseZ.toLocaleString('es-ES', { minimumFractionDigits: 2 })}.\\text{ u.m.}$ Actividades adicionales en cero ($x_v=0, x_g=0, x_s=0$). En LD: $(-Z) = -${baseZ.toLocaleString('es-ES', { minimumFractionDigits: 2 })}\\text{ u.m.}$, equivalente a un beneficio inicial de $Z = +${baseZ.toLocaleString('es-ES', { minimumFractionDigits: 2 })}\\text{ u.m.}$`
+      `Se formula el sistema completo con las 7 variables de decisión, holguras $s_1 \\dots s_7$ y variables artificiales $t_1, t_2$ para satisfacer los requerimientos mínimos de alimentación animal. En la <strong>Fase 1</strong> se eliminan las variables artificiales para acceder a la región factible. El pivote inicial entra en $x_m$ para reemplazar $t_1$.`,
+      "Fase 1"
     );
 
-    let iteration = 0;
-    const maxIter = 15;
+    // PASO 1: Fase 1 (Paso 1) - xm entra, sale t1 (fila índice 7)
+    fullPivot(7, colNames.indexOf('x_m'));
+    recordStep(
+      1, colNames.indexOf('x_t'), 8, 1.0, 100.0,
+      "Fase 1 (Paso 1): Eliminación de la Variable Artificial t_1 (Maíz Mínimo)",
+      "iterating",
+      `Entra la variable de cultivo <strong>$x_m$</strong> al valor de $\\text{LD} = 30\\text{ acres}$ para alimentar a las 30 vacas iniciales. Sale la variable artificial <strong>$t_1$</strong> quedando en 0. Siguiente pivote: entra $x_t$ para expulsar $t_2$.`,
+      "Fase 1"
+    );
 
-    while (iteration < maxIter) {
-      iteration++;
+    // PASO 2: Fase 1 (Paso 2) - xt entra, sale t2 (fila índice 8)
+    fullPivot(8, colNames.indexOf('x_t'));
+    recordStep(
+      2, null, null, null, null,
+      "Fin de Fase 1: Base Factible Alcanzada (Inicio de Fase 2)",
+      "iterating",
+      `Las variables artificiales han sido eliminadas ($t_1=0, t_2=0$). Se alcanza una <strong>Solución Básica Factible (SBF)</strong> real con $x_m = 30\\text{ ac}$, $x_t = 100\\text{ ac}$ y $450\\text{ ac}$ libres de tierra arable. El beneficio del estado base es $Z = ${(-zRow[totalCols - 1]).toLocaleString('es-ES', { minimumFractionDigits: 2 })}\\text{ u.m.}$ Iniciamos la <strong>Fase 2 de Optimización</strong>.`,
+      "Fase 2"
+    );
 
-      // 1. Regla de selección para MINIMIZAR (-Z):
-      // Entra la variable con el coeficiente MÁS POSITIVO en la fila (-Z), pues al aumentar esa variable se reduce (-Z)
-      let maxVal = 1e-6;
+    // ITERACIONES DE FASE 2:
+    let iter = 2;
+    const maxIter = 12;
+
+    while (iter < maxIter) {
+      iter++;
+      // Regla de entrada: coeficiente MÁS POSITIVO en fila (-Z), ignorando artificiales
+      let maxVal = 1e-5;
       let enteringCol = null;
 
       for (let j = 1; j < totalCols - 1; j++) {
-        if (tableau[0][j] > maxVal) {
-          maxVal = tableau[0][j];
+        const cName = colNames[j];
+        if (!cName.startsWith('t_') && zRow[j] > maxVal) {
+          maxVal = zRow[j];
           enteringCol = j;
         }
       }
 
-      // Si no hay coeficientes positivos en fila (-Z), se alcanzó el óptimo de minimización
       if (enteringCol === null) {
-        steps[steps.length - 1].status = 'optimal';
-        steps[steps.length - 1].message = `¡Solución Óptima Alcanzada en la Iteración ${iteration - 1}!`;
-        steps[steps.length - 1].detailMessage = `Todos los coeficientes de la fila $(-Z)$ son $\\le 0$. Condición de parada de minimización satisfecha con éxito. En la columna <strong>LD</strong>: $(-Z)^* = -${steps[steps.length - 1].currentZ.toLocaleString('es-ES', { minimumFractionDigits: 2 })}\\text{ u.m.}$, recuperando el beneficio óptimo patrimonial maximizado: $$Z^* = -(-Z)^* = \\mathbf{+${steps[steps.length - 1].currentZ.toLocaleString('es-ES', { minimumFractionDigits: 2 })}\\text{ u.m.}}$$`;
+        const last = steps[steps.length - 1];
+        last.status = 'optimal';
+        last.message = `¡Solución Óptima Alcanzada en el Paso ${iter - 1}!`;
+        last.detailMessage = `Todos los coeficientes de las variables no básicas en la fila $(-Z)$ son $\\le 0$. Condición de optimalidad de minimización cumplida. En la columna <strong>LD</strong>: $(-Z)^* = -${last.currentZ.toLocaleString('es-ES', { minimumFractionDigits: 2 })}\\text{ u.m.}$, recuperando el beneficio óptimo patrimonial: $$Z^* = -(-Z)^* = \\mathbf{+${last.currentZ.toLocaleString('es-ES', { minimumFractionDigits: 2 })}\\text{ u.m.}}$$`;
         break;
       }
 
-      // 2. Test de la Razón Mínima (TMR) para encontrar la variable saliente
+      // Test de la Razón Mínima (TMR)
       let minRatio = Infinity;
       let leavingRow = null;
-
       for (let i = 0; i < m; i++) {
-        const a_ij = tableau[i + 1][enteringCol];
-        const ld = tableau[i + 1][totalCols - 1]; // Lado Derecho LD
-        if (a_ij > 1e-7) {
-          const ratio = ld / a_ij;
+        const a = matrix[i][enteringCol];
+        const ld = matrix[i][totalCols - 1];
+        if (a > 1e-7) {
+          const ratio = ld / a;
           if (ratio < minRatio) {
             minRatio = ratio;
             leavingRow = i;
@@ -222,49 +255,48 @@ const SOLVER = (function() {
       }
 
       if (leavingRow === null) {
-        recordStep(iteration, enteringCol, null, null, null, "Problema no acotado", "unbounded", "La función objetivo decrece indefinidamente.");
+        recordStep(iter, enteringCol, null, null, null, "Problema no acotado", "unbounded", "Función objetivo no acotada.", "Fase 2");
         break;
       }
 
-      const pivotVal = tableau[leavingRow + 1][enteringCol];
+      const pivotVal = matrix[leavingRow][enteringCol];
       const entName = colNames[enteringCol];
       const lvgName = basicVars[leavingRow];
 
-      const stepMsg = `Iteración ${iteration}: Entra ${entName} y sale ${lvgName}.`;
-      const detailMsg = `Variable entrante: <strong>${entName}</strong> (mayor tasa de reducción de $(-Z)$: +${maxVal.toFixed(2)}). <strong>TMR (Test de la Razón Mínima):</strong> $\\text{TMR} = \\min \\{ \\text{LD}_i / a_{ik} \\} = ${minRatio.toFixed(2)}$, dictada por la fila de <strong>${lvgName}</strong>. Elemento pivote = ${pivotVal.toFixed(4)}.`;
+      // Registrar pivote en el paso previo para mostrar celda pivote en amarillo
+      steps[steps.length - 1].enteringCol = enteringCol;
+      steps[steps.length - 1].enteringVar = entName;
+      steps[steps.length - 1].leavingRow = leavingRow;
+      steps[steps.length - 1].leavingVar = lvgName;
+      steps[steps.length - 1].pivotVal = pivotVal;
+      steps[steps.length - 1].minRatio = minRatio;
 
-      // 3. Operaciones elementales de Gauss-Jordan
-      // Normalizar la fila pivote
-      for (let j = 0; j < totalCols; j++) {
-        tableau[leavingRow + 1][j] /= pivotVal;
+      // Ejecutar pivote Gauss-Jordan
+      fullPivot(leavingRow, enteringCol);
+
+      let planDesc = "";
+      if (entName === 'x_v') {
+        planDesc = `Se adquieren vacas lecheras adicionales hasta copar el granero (Plan C Defensivo).`;
+      } else if (entName === 'x_s') {
+        planDesc = `Se siembra soya comercial ocupando toda la tierra arable disponible (Plan B Recomendado).`;
+      } else if (entName === 's_3') {
+        planDesc = `Se sustituye la inversión ganadera para expandir la soya al tope agronómico de 450 acres (Plan A Óptimo Global).`;
+      } else if (entName === 'x_g') {
+        planDesc = `Se incorporan gallinas de postura aprovechando la holgura de capital (Óptimo Sequía).`;
       }
-      tableau[leavingRow + 1][enteringCol] = 1.0;
 
-      // Anular la columna pivote en las demás filas
-      for (let i = 0; i <= m; i++) {
-        if (i !== leavingRow + 1) {
-          const factor = tableau[i][enteringCol];
-          if (Math.abs(factor) > 1e-9) {
-            for (let j = 0; j < totalCols; j++) {
-              tableau[i][j] -= factor * tableau[leavingRow + 1][j];
-            }
-            tableau[i][enteringCol] = 0.0;
-          }
-        }
-      }
+      const stepMsg = `Paso ${iter} (Fase 2): Entra ${entName} y sale ${lvgName}.`;
+      const detailMsg = `Variable entrante: <strong>${entName}</strong> (coeficiente en fila $(-Z)$: +${maxVal.toFixed(2)}). <strong>TMR:</strong> $\\min \\{ \\text{LD}_i / a_{ik} \\} = ${minRatio.toFixed(2)}$, dictado por la fila de <strong>${lvgName}</strong>. Elemento pivote = ${pivotVal.toFixed(4)}. ${planDesc}`;
 
-      basicVars[leavingRow] = entName;
-      recordStep(iteration, enteringCol, leavingRow, pivotVal, minRatio, stepMsg, 'iterating', detailMsg);
+      recordStep(iter, null, null, null, null, stepMsg, 'iterating', detailMsg, "Fase 2");
     }
 
-    const lastStep = steps[steps.length - 1];
-    if (lastStep && lastStep.status !== 'unbounded') {
-      lastStep.status = 'optimal';
-    }
+    const finalStep = steps[steps.length - 1];
+    finalStep.status = 'optimal';
 
     return {
       modelType,
-      config,
+      config: { title, varNames, colNames, totalCols },
       steps
     };
   }

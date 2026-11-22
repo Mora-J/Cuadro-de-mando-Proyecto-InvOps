@@ -149,22 +149,26 @@ document.addEventListener("DOMContentLoaded", function () {
       const totalSteps = simData.steps.length;
 
       // 1. Actualizar Badge de Pasos y Estado
-      stepBadge.textContent = `Iteración ${step.iteration} (${idx + 1} de ${totalSteps})`;
+      stepBadge.textContent = `${step.phase || 'Fase 2'} (Paso ${idx} de ${totalSteps - 1})`;
       if (step.status === "initial") {
-        statusBadge.textContent = "Estado Base";
+        statusBadge.textContent = "Fase 1 Inicial";
         statusBadge.className = "badge kpi-badge-amber";
       } else if (step.status === "optimal") {
         statusBadge.textContent = "Óptimo Alcanzado ✓";
         statusBadge.className = "badge kpi-badge-green";
+      } else if (step.phase === "Fase 1") {
+        statusBadge.textContent = "Fase 1 (Factibilidad)";
+        statusBadge.className = "badge kpi-badge-amber";
       } else {
-        statusBadge.textContent = "Pivotando...";
+        statusBadge.textContent = "Fase 2 (Optimizando...)";
         statusBadge.className = "badge kpi-badge-blue";
       }
 
-      // 2. Actualizar Métricas en Vivo
+      // 2. Actualizar Métricas en Vivo de las 7 Variables de Decisión
       if (mZ) mZ.textContent = step.currentZ.toLocaleString("es-ES", { minimumFractionDigits: 2 }) + " u.m.";
-      if (mXv) mXv.textContent = step.sol.xv;
-      if (mXg) mXg.textContent = step.sol.xg.toLocaleString("es-ES");
+      // Vacas y gallinas son animales enteros: no muestran decimales
+      if (mXv) mXv.textContent = Math.round(step.sol.xv);
+      if (mXg) mXg.textContent = Math.round(step.sol.xg).toLocaleString("es-ES");
       if (mXs) mXs.textContent = step.sol.xs.toFixed(1);
       if (mXm) mXm.textContent = step.sol.xm.toFixed(1);
       if (mXt) mXt.textContent = step.sol.xt.toFixed(1);
@@ -178,9 +182,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
       for (let i = 0; i <= idx; i++) {
         const s = simData.steps[i];
-        historyLabels.push(`Paso ${s.iteration}`);
+        let pLabel = `P${s.iteration}`;
+        if (i === 0) pLabel = "P0 (F1 Inicio)";
+        else if (i === 1) pLabel = "P1 (F1 Maíz)";
+        else if (i === 2) pLabel = "P2 (F1 SBF)";
+        else if (i === totalSteps - 1 && s.status === "optimal") pLabel = `P${s.iteration} (Óptimo)`;
+        else pLabel = `P${s.iteration} (F2)`;
+
+        historyLabels.push(pLabel);
         historyData.push(s.currentZ);
-        pointColors.push(i === totalSteps - 1 && s.status === "optimal" ? "#10B981" : "#0070F3");
+
+        let ptColor = "#0070F3"; // Phase 2 blue
+        if (i === totalSteps - 1 && s.status === "optimal") {
+          ptColor = "#10B981"; // Optimal green
+        } else if (s.phase === "Fase 1") {
+          ptColor = "#D97706"; // Phase 1 amber
+        }
+        pointColors.push(ptColor);
       }
 
       convergenceChart.data.labels = historyLabels;
@@ -209,6 +227,14 @@ document.addEventListener("DOMContentLoaded", function () {
       btnNext.disabled = idx === totalSteps - 1;
     }
 
+    function formatVarHeader(name) {
+      if (!name) return "";
+      if (name === '(-Z)') return '(-Z)';
+      if (name === 'LD') return 'LD';
+      if (name === 'TMR') return 'TMR';
+      return name.replace(/_\{?([a-zA-Z0-9]+)\}?/g, '<sub>$1</sub>');
+    }
+
     function renderTableau(step) {
       const colNames = step.colNames;
       const tableau = step.tableau;
@@ -220,7 +246,7 @@ document.addEventListener("DOMContentLoaded", function () {
       html += '<th>Base</th>';
       colNames.forEach((col, j) => {
         const isEnt = j === entCol;
-        html += `<th class="${isEnt ? 'entering-col' : ''}">${col}${isEnt ? ' ↓' : ''}</th>`;
+        html += `<th class="${isEnt ? 'entering-col' : ''}">${formatVarHeader(col)}${isEnt ? ' ↓' : ''}</th>`;
       });
       html += '<th>TMR</th>';
       html += '</tr></thead><tbody>';
@@ -242,13 +268,19 @@ document.addEventListener("DOMContentLoaded", function () {
         const basicName = basicVars[rowConstraintIndex];
 
         html += `<tr class="${isLvg ? 'leaving-row' : ''}">`;
-        html += `<td class="font-bold">${basicName}${isLvg ? ' ←' : ''}</td>`;
+        html += `<td class="font-bold">${formatVarHeader(basicName)}${isLvg ? ' ←' : ''}</td>`;
 
         for (let j = 0; j < colNames.length; j++) {
           const isEnt = j === entCol;
           const isPivot = isEnt && isLvg;
           const cellClass = isPivot ? 'pivot-cell' : isEnt ? 'entering-col' : '';
-          html += `<td class="${cellClass}">${tableau[i][j].toFixed(2)}</td>`;
+          
+          let valStr = tableau[i][j].toFixed(2);
+          // Si es la columna LD y la variable de la fila es vacas o gallinas, mostrar sin decimales
+          if (j === colNames.length - 1 && (basicName === 'x_v' || basicName === 'x_g')) {
+            valStr = Math.round(tableau[i][j]).toLocaleString("es-ES");
+          }
+          html += `<td class="${cellClass}">${valStr}</td>`;
         }
 
         // Razón TMR (Lado Derecho / Coeficiente Positivo)
@@ -463,7 +495,7 @@ document.addEventListener("DOMContentLoaded", function () {
       outEcm.textContent = res.expectedPrices.corn.toFixed(2) + " u.m.";
       outEct.textContent = res.expectedPrices.wheat.toFixed(2) + " u.m.";
 
-      outXv.textContent = res.decisionVars.xv;
+      outXv.textContent = Math.round(res.decisionVars.xv);
       outXs.textContent = res.decisionVars.xs.toFixed(1);
       outXm.textContent = res.decisionVars.xm.toFixed(1);
       outXt.textContent = res.decisionVars.xt.toFixed(1);

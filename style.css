@@ -512,11 +512,11 @@ body {
   width: 100%;
   border-collapse: collapse;
   font-family: "JetBrains Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
 }
 
 .simplex-table th, .simplex-table td {
-  padding: 8px 10px;
+  padding: 6px 8px;
   text-align: right;
   border: 1px solid #E2E8F0;
   white-space: nowrap;
@@ -527,6 +527,16 @@ body {
   color: #334155;
   font-weight: 700;
   text-align: center;
+}
+
+.simplex-table th:first-child, .simplex-table td:first-child {
+  text-align: center;
+  font-weight: 700;
+  background: #F8FAFC;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  border-right: 2px solid #CBD5E1;
 }
 
 .simplex-table tr:first-child td {
